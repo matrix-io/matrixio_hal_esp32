@@ -22,7 +22,7 @@
 #include <string>
 #include <iostream>
 #include "everloop.h"
-#include "creator_memory_map.h"
+#include "voice_memory_map.h"
 
 namespace matrix_hal {
 

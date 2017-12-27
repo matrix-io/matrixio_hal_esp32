@@ -26,7 +26,7 @@ void cpp_loop()
 }
 
 extern "C" {
-void app_main()
+void app_main(void)
 {
   cpp_loop();
 }
