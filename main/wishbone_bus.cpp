@@ -3,7 +3,7 @@
  * MATRIX Labs  [http://creator.matrix.one]
  * This file is part of MATRIX Voice HAL for ESP32
  *
- * Author: 
+ * Author:
  *       Andrés Calderón <andres.calderon@admobilize.com>
  *
  * MATRIX Voice ESP32 HAL is free software: you can redistribute it
@@ -27,9 +27,9 @@ esp_err_t WishboneBus::Init() {
   esp_err_t ret;
 
   spi_bus_config_t buscfg;
-  buscfg.miso_io_num = GPIO_NUM_25;
-  buscfg.mosi_io_num = GPIO_NUM_23;
-  buscfg.sclk_io_num = GPIO_NUM_19;
+  buscfg.miso_io_num = GPIO_NUM_21;
+  buscfg.mosi_io_num = GPIO_NUM_33;
+  buscfg.sclk_io_num = GPIO_NUM_32;
   buscfg.quadwp_io_num = -1;
   buscfg.quadhd_io_num = -1;
   buscfg.max_transfer_sz = 0;
@@ -43,7 +43,7 @@ esp_err_t WishboneBus::Init() {
   devcfg.cs_ena_pretrans = 0;
   devcfg.cs_ena_posttrans = 0;
   devcfg.clock_speed_hz = 1000000;
-  devcfg.spics_io_num = GPIO_NUM_22;
+  devcfg.spics_io_num = GPIO_NUM_23;
   devcfg.flags = 0;
   devcfg.queue_size = 7;
   devcfg.pre_cb = 0;
@@ -94,7 +94,8 @@ esp_err_t WishboneBus::RegRead16(uint16_t add, uint16_t *pdata) {
   hw_addr.burst = 0;
   hw_addr.readnwrite = 1;
 
-  return SpiTransfer(&hw_addr, tx_buffer_, reinterpret_cast<uint8_t *>(pdata), sizeof(uint16_t));
+  return SpiTransfer(&hw_addr, tx_buffer_, reinterpret_cast<uint8_t *>(pdata),
+                     sizeof(uint16_t));
 }
 
 esp_err_t WishboneBus::SpiWrite(uint16_t add, uint8_t *data, int length) {

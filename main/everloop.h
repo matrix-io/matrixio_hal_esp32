@@ -3,7 +3,7 @@
  * MATRIX Labs  [http://creator.matrix.one]
  * This file is part of MATRIX Voice HAL for  ESP32
  *
- * Author: 
+ * Author:
  *       Andrés Calderón <andres.calderon@admobilize.com>
  *
  * MATRIX Voice ESP32 HAL is free software: you can redistribute it
@@ -22,8 +22,8 @@
 #define CPP_DRIVER_EVERLOOP_H_
 
 #include <string>
-#include "./matrix_driver.h"
 #include "./everloop_image.h"
+#include "./matrix_driver.h"
 
 namespace matrix_hal {
 

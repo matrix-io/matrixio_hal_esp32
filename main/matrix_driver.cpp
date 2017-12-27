@@ -3,7 +3,7 @@
  * MATRIX Labs  [http://creator.matrix.one]
  * This file is part of MATRIX Voice HAL for ESP32
  *
- * Author: 
+ * Author:
  *       Andrés Calderón <andres.calderon@admobilize.com>
  *
  * MATRIX Voice ESP32 HAL is free software: you can redistribute it
@@ -17,8 +17,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <string>
 #include "matrix_driver.h"
+#include <string>
 
 namespace matrix_hal {
 
