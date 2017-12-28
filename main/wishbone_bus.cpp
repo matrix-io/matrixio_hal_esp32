@@ -36,13 +36,12 @@ esp_err_t WishboneBus::Init() {
 
   spi_device_interface_config_t devcfg;
   devcfg.command_bits = 0;
-  devcfg.address_bits = 16;
+  devcfg.address_bits = 0;
   devcfg.dummy_bits = 0;
   devcfg.mode = 3;
-  devcfg.duty_cycle_pos = 128;
   devcfg.cs_ena_pretrans = 0;
   devcfg.cs_ena_posttrans = 0;
-  devcfg.clock_speed_hz = 1000000;
+  devcfg.clock_speed_hz = 10*1000*1000;
   devcfg.spics_io_num = GPIO_NUM_23;
   devcfg.flags = 0;
   devcfg.queue_size = 7;
@@ -64,9 +63,12 @@ esp_err_t WishboneBus::SpiTransfer(hardware_address *hw_addr,
   memcpy(&hw_uint16, hw_addr, sizeof(hw_uint16));
 
   spi_transaction_t trans;
+  
+  memset(&trans, 0, sizeof(trans));       //Zero out the transaction
+
   trans.flags = SPI_TRANS_USE_TXDATA;
-  trans.cmd = 0;
-  trans.addr = hw_uint16;
+ // trans.cmd = 0;
+ // trans.addr = hw_uint16;
   trans.length = 8 * size;
   trans.rxlength = 0;
   trans.user = 0;
@@ -83,8 +85,11 @@ esp_err_t WishboneBus::RegWrite16(uint16_t add, uint16_t data) {
   hw_addr.burst = 0;
   hw_addr.readnwrite = 0;
 
-  return SpiTransfer(&hw_addr, reinterpret_cast<uint8_t *>(&data), rx_buffer_,
-                     sizeof(uint16_t));
+  memcpy(tx_buffer_,&hw_addr,sizeof(hw_addr));
+  memcpy(&tx_buffer_[2],&data,sizeof(data));
+
+  return SpiTransfer(&hw_addr, tx_buffer_, rx_buffer_,
+                     sizeof(uint16_t)+2);
 }
 
 esp_err_t WishboneBus::RegRead16(uint16_t add, uint16_t *pdata) {

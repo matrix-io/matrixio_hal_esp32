@@ -18,7 +18,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdio.h>
 #include <cmath>
+
+#include "esp_system.h"
+
 
 #include "everloop.h"
 #include "everloop_image.h"
@@ -29,7 +33,10 @@ namespace hal = matrix_hal;
 void cpp_loop() {
   matrix_hal::WishboneBus wb;
 
-  wb.Init();
+  esp_err_t ret = wb.Init();
+
+  printf("init %d\n", ret);
+  fflush(stdout);
 
   hal::Everloop everloop;
   hal::EverloopImage image1d;
@@ -44,11 +51,14 @@ void cpp_loop() {
       led.green = 0;
       led.blue = static_cast<int>(std::sin(counter / 128.0) * 7.0) + 8;
       led.white = 0;
+
     }
 
     everloop.Write(&image1d);
     ++counter;
-    //    usleep(1000);
+
+    if (counter==64)
+	    esp_restart();
   }
 }
 
