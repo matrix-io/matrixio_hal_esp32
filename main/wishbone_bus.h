@@ -52,6 +52,8 @@ class WishboneBus {
   esp_err_t SpiRead(uint16_t add, uint8_t* data, int length);
   esp_err_t SpiReadBurst(uint16_t add, uint8_t* data, int length);
 
+  uint32_t FPGAFrequency() { return 50000000; }
+
  private:
   esp_err_t SpiTransfer(hardware_address* hw_addr, uint8_t* send_buffer,
                         uint8_t* receive_buffer, uint32_t size);

@@ -18,40 +18,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cmath>
+#ifndef CPP_DRIVER_MICARRAY_LOCATION_H_
+#define CPP_DRIVER_MICARRAY_LOCATION_H_
 
-#include "everloop.h"
-#include "everloop_image.h"
-#include "wishbone_bus.h"
+#include <string>
+#include "./matrix_driver.h"
 
-namespace hal = matrix_hal;
+namespace matrix_hal {
 
-void cpp_loop() {
-  matrix_hal::WishboneBus wb;
+/*
+  x,y  position in milimeters
+ */
 
-  wb.Init();
+static float micarray_location[8][2] = {
+    {20.0908795, -48.5036755},  /* M1 */
+    {-20.0908795, -48.5036755}, /* M2 */
+    {-48.5036755, -20.0908795}, /* M3 */
+    {-48.5036755, 20.0908795},  /* M4 */
+    {-20.0908795, 48.5036755},  /* M5 */
+    {20.0908795, 48.5036755},   /* M6 */
+    {48.5036755, 20.0908795},   /* M7 */
+    {48.5036755, -20.0908795}   /* M8 */
+};
 
-  hal::Everloop everloop;
-  hal::EverloopImage image1d;
-
-  everloop.Setup(&wb);
-
-  unsigned counter = 0;
-
-  while (1) {
-    for (hal::LedValue& led : image1d.leds) {
-      led.red = 0;
-      led.green = 0;
-      led.blue = static_cast<int>(std::sin(counter / 128.0) * 7.0) + 8;
-      led.white = 0;
-    }
-
-    everloop.Write(&image1d);
-    ++counter;
-    //    usleep(1000);
-  }
-}
-
-extern "C" {
-void app_main(void) { cpp_loop(); }
-}
+};      // namespace matrix_hal
+#endif  // CPP_DRIVER_MICARRAY_LOCATION_H_
