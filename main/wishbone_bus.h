@@ -55,8 +55,8 @@ class WishboneBus {
   uint32_t FPGAFrequency() { return 50000000; }
 
  private:
-  esp_err_t SpiTransfer(hardware_address* hw_addr, uint8_t* send_buffer,
-                        uint8_t* receive_buffer, uint32_t size);
+  esp_err_t SpiTransfer(uint8_t* send_buffer, uint8_t* receive_buffer,
+                        uint32_t size);
 
  private:
   spi_device_handle_t spi_;

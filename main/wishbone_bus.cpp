@@ -39,9 +39,10 @@ esp_err_t WishboneBus::Init() {
   devcfg.address_bits = 0;
   devcfg.dummy_bits = 0;
   devcfg.mode = 3;
+  devcfg.duty_cycle_pos = 128;
   devcfg.cs_ena_pretrans = 0;
   devcfg.cs_ena_posttrans = 0;
-  devcfg.clock_speed_hz = 10*1000*1000;
+  devcfg.clock_speed_hz = 1000000;
   devcfg.spics_io_num = GPIO_NUM_23;
   devcfg.flags = 0;
   devcfg.queue_size = 7;
@@ -55,22 +56,15 @@ esp_err_t WishboneBus::Init() {
   return ESP_OK;
 }
 
-esp_err_t WishboneBus::SpiTransfer(hardware_address *hw_addr,
-                                   uint8_t *send_buffer,
+esp_err_t WishboneBus::SpiTransfer(uint8_t *send_buffer,
                                    uint8_t *receive_buffer, uint32_t size) {
-  uint16_t hw_uint16;
-
-  memcpy(&hw_uint16, hw_addr, sizeof(hw_uint16));
-
   spi_transaction_t trans;
-  
-  memset(&trans, 0, sizeof(trans));       //Zero out the transaction
 
-  trans.flags = SPI_TRANS_USE_TXDATA;
- // trans.cmd = 0;
- // trans.addr = hw_uint16;
+  memset(&trans, 0, sizeof(trans));  // Zero out the transaction
+
+  trans.flags = SPI_TRANS_USE_RXDATA | SPI_TRANS_USE_TXDATA;
   trans.length = 8 * size;
-  trans.rxlength = 0;
+  trans.rxlength = 8 * size;
   trans.user = 0;
   trans.rx_buffer = (void *)receive_buffer;
   trans.tx_buffer = (void *)send_buffer;
@@ -79,28 +73,27 @@ esp_err_t WishboneBus::SpiTransfer(hardware_address *hw_addr,
 }
 
 esp_err_t WishboneBus::RegWrite16(uint16_t add, uint16_t data) {
-  hardware_address hw_addr;
+  hardware_address *hw_addr = reinterpret_cast<hardware_address *>(tx_buffer_);
+  hw_addr->reg = add;
+  hw_addr->burst = 0;
+  hw_addr->readnwrite = 0;
 
-  hw_addr.reg = add;
-  hw_addr.burst = 0;
-  hw_addr.readnwrite = 0;
+  memcpy(&tx_buffer_[2], &data, sizeof(data));
 
-  memcpy(tx_buffer_,&hw_addr,sizeof(hw_addr));
-  memcpy(&tx_buffer_[2],&data,sizeof(data));
-
-  return SpiTransfer(&hw_addr, tx_buffer_, rx_buffer_,
-                     sizeof(uint16_t)+2);
+  return SpiTransfer(tx_buffer_, rx_buffer_, 4);
 }
 
 esp_err_t WishboneBus::RegRead16(uint16_t add, uint16_t *pdata) {
-  hardware_address hw_addr;
+  hardware_address *hw_addr = reinterpret_cast<hardware_address *>(tx_buffer_);
 
-  hw_addr.reg = add;
-  hw_addr.burst = 0;
-  hw_addr.readnwrite = 1;
+  hw_addr->reg = add;
+  hw_addr->burst = 0;
+  hw_addr->readnwrite = 1;
 
-  return SpiTransfer(&hw_addr, tx_buffer_, reinterpret_cast<uint8_t *>(pdata),
-                     sizeof(uint16_t));
+  esp_err_t ret = SpiTransfer(tx_buffer_, rx_buffer_, 4);
+
+  if (ret == ESP_OK) memcpy(pdata, &rx_buffer_[2], 2);
+  return ret;
 }
 
 esp_err_t WishboneBus::SpiWrite(uint16_t add, uint8_t *data, int length) {
@@ -126,13 +119,13 @@ esp_err_t WishboneBus::SpiRead(uint16_t add, uint8_t *data, int length) {
 }
 
 esp_err_t WishboneBus::SpiReadBurst(uint16_t add, uint8_t *data, int length) {
-  hardware_address hw_addr;
+  hardware_address *hw_addr = reinterpret_cast<hardware_address *>(tx_buffer_);
 
-  hw_addr.reg = add;
-  hw_addr.burst = 1;
-  hw_addr.readnwrite = 1;
+  hw_addr->reg = add;
+  hw_addr->burst = 1;
+  hw_addr->readnwrite = 1;
 
-  return SpiTransfer(&hw_addr, tx_buffer_, data, length);
+  return SpiTransfer(tx_buffer_, data, length);
 }
 
 };  // namespace matrix_hal

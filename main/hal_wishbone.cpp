@@ -23,12 +23,17 @@
 
 #include "esp_system.h"
 
-
 #include "everloop.h"
 #include "everloop_image.h"
+#include "voice_memory_map.h"
 #include "wishbone_bus.h"
 
 namespace hal = matrix_hal;
+
+struct fpga_version {
+  uint32_t identify;
+  uint32_t version;
+};
 
 void cpp_loop() {
   matrix_hal::WishboneBus wb;
@@ -45,21 +50,27 @@ void cpp_loop() {
 
   unsigned counter = 0;
 
-  while (1) {
+  fpga_version v;
+  wb.SpiRead(hal::kConfBaseAddress, (uint8_t*)&v, sizeof(fpga_version));
+
+  printf("identify = %d\n", v.identify);
+  printf("version = %d\n", v.version);
+  fflush(stdout);
+
+  while (0) {
     for (hal::LedValue& led : image1d.leds) {
       led.red = 0;
       led.green = 0;
       led.blue = static_cast<int>(std::sin(counter / 128.0) * 7.0) + 8;
       led.white = 0;
-
     }
 
     everloop.Write(&image1d);
     ++counter;
 
-    if (counter==64)
-	    esp_restart();
+    if (counter == 1024) esp_restart();
   }
+  esp_restart();
 }
 
 extern "C" {
