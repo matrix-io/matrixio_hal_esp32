@@ -62,7 +62,7 @@ esp_err_t WishboneBus::SpiTransfer(uint8_t *send_buffer,
 
   memset(&trans, 0, sizeof(trans));  // Zero out the transaction
 
-  trans.flags = SPI_TRANS_USE_RXDATA | SPI_TRANS_USE_TXDATA;
+  trans.flags = 0;
   trans.length = 8 * size;
   trans.rxlength = 8 * size;
   trans.user = 0;
