@@ -64,6 +64,9 @@ esp_err_t WishboneBus::Init() {
   esp_err_t ret;
 
   spi_bus_config_t buscfg;
+
+  memset(&buscfg, 0, sizeof(buscfg));
+
   buscfg.miso_io_num = FPGA_SPI_MISO;
   buscfg.mosi_io_num = FPGA_SPI_MOSI;
   buscfg.sclk_io_num = FPGA_SPI_SCLK;
@@ -72,11 +75,14 @@ esp_err_t WishboneBus::Init() {
   buscfg.max_transfer_sz = 0;
 
   spi_device_interface_config_t devcfg;
-  //
+  
+  memset(&devcfg, 0, sizeof(devcfg));
+
   devcfg.command_bits = 0;
   devcfg.address_bits = 0;
   devcfg.dummy_bits = 0;
   devcfg.mode = 3;
+  devcfg.duty_cycle_pos = 128;
   devcfg.cs_ena_pretrans = 0;
   devcfg.cs_ena_posttrans = 0;
   devcfg.clock_speed_hz = 1 * 1000 * 1000;
