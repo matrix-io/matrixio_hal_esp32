@@ -21,37 +21,77 @@
 #include "wishbone_bus.h"
 #include <cstring>
 
+#define FPGA_SPI_CS GPIO_NUM_23
+#define FPGA_SPI_MOSI GPIO_NUM_33
+#define FPGA_SPI_MISO GPIO_NUM_21
+#define FPGA_SPI_SCLK GPIO_NUM_32
+
+#define NOP() asm volatile("nop")
+
+void cs_active(spi_transaction_t *trans) {
+  gpio_set_level(FPGA_SPI_CS, 0);
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+  NOP();
+}
+
+void cs_inactive(spi_transaction_t *trans) { gpio_set_level(FPGA_SPI_CS, 1); }
+
 namespace matrix_hal {
 
 esp_err_t WishboneBus::Init() {
   esp_err_t ret;
 
   spi_bus_config_t buscfg;
-  buscfg.miso_io_num = GPIO_NUM_21;
-  buscfg.mosi_io_num = GPIO_NUM_33;
-  buscfg.sclk_io_num = GPIO_NUM_32;
+  buscfg.miso_io_num = FPGA_SPI_MISO;
+  buscfg.mosi_io_num = FPGA_SPI_MOSI;
+  buscfg.sclk_io_num = FPGA_SPI_SCLK;
   buscfg.quadwp_io_num = -1;
   buscfg.quadhd_io_num = -1;
   buscfg.max_transfer_sz = 0;
 
   spi_device_interface_config_t devcfg;
+  //
   devcfg.command_bits = 0;
   devcfg.address_bits = 0;
   devcfg.dummy_bits = 0;
   devcfg.mode = 3;
-  devcfg.duty_cycle_pos = 128;
   devcfg.cs_ena_pretrans = 0;
   devcfg.cs_ena_posttrans = 0;
-  devcfg.clock_speed_hz = 1000000;
-  devcfg.spics_io_num = GPIO_NUM_23;
+  devcfg.clock_speed_hz = 1 * 1000 * 1000;
+  devcfg.spics_io_num = -1;
   devcfg.flags = 0;
-  devcfg.queue_size = 7;
-  devcfg.pre_cb = 0;
-  devcfg.post_cb = 0;
+  devcfg.queue_size = 1;
+  devcfg.pre_cb = cs_active;
+  devcfg.post_cb = cs_inactive;
 
   if ((ret = spi_bus_initialize(HSPI_HOST, &buscfg, 0))) return ret;
 
   if ((ret = spi_bus_add_device(HSPI_HOST, &devcfg, &spi_))) return ret;
+
+  gpio_set_direction(FPGA_SPI_CS, GPIO_MODE_OUTPUT);
+  gpio_set_level(FPGA_SPI_CS, 1);
 
   return ESP_OK;
 }
@@ -62,10 +102,10 @@ esp_err_t WishboneBus::SpiTransfer(uint8_t *send_buffer,
 
   memset(&trans, 0, sizeof(trans));  // Zero out the transaction
 
-  trans.flags = 0;
+  // trans.flags = 0;
   trans.length = 8 * size;
   trans.rxlength = 8 * size;
-  trans.user = 0;
+  // trans.user = 0;
   trans.rx_buffer = (void *)receive_buffer;
   trans.tx_buffer = (void *)send_buffer;
 
@@ -80,10 +120,14 @@ esp_err_t WishboneBus::RegWrite16(uint16_t add, uint16_t data) {
 
   memcpy(&tx_buffer_[2], &data, sizeof(data));
 
-  return SpiTransfer(tx_buffer_, rx_buffer_, 4);
+  esp_err_t ret = SpiTransfer(tx_buffer_, rx_buffer_, 4);
+
+  return ret;
 }
 
 esp_err_t WishboneBus::RegRead16(uint16_t add, uint16_t *pdata) {
+  memset(tx_buffer_, 0, 4);
+
   hardware_address *hw_addr = reinterpret_cast<hardware_address *>(tx_buffer_);
 
   hw_addr->reg = add;

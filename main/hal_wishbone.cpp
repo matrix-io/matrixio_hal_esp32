@@ -51,18 +51,27 @@ void cpp_loop() {
   unsigned counter = 0;
 
   fpga_version v;
-  wb.SpiRead(hal::kConfBaseAddress, (uint8_t*)&v, sizeof(fpga_version));
+  v.identify = 0x55;
+  v.version = 0xAC;
+  // wb.SpiWrite(hal::kConfBaseAddress, (uint8_t*)&v, sizeof(fpga_version));
+
+  v.identify = 0;
+  v.version = 0;
+  // wb.SpiRead(hal::kConfBaseAddress, (uint8_t*)&v, sizeof(fpga_version));
 
   printf("identify = %d\n", v.identify);
   printf("version = %d\n", v.version);
   fflush(stdout);
 
-  while (0) {
+  while (1) {
     for (hal::LedValue& led : image1d.leds) {
-      led.red = 0;
-      led.green = 0;
+      led.red = static_cast<int>(std::sin(counter / 128.0) * 7.0) + 8;
+      ;
+      led.green = static_cast<int>(std::sin(counter / 128.0) * 7.0) + 8;
+      ;
       led.blue = static_cast<int>(std::sin(counter / 128.0) * 7.0) + 8;
-      led.white = 0;
+      led.white = static_cast<int>(std::sin(counter / 128.0) * 7.0) + 8;
+      ;
     }
 
     everloop.Write(&image1d);
