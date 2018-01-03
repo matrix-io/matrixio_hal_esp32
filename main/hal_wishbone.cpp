@@ -23,6 +23,7 @@
 
 #include "esp_system.h"
 
+#include <cstring>
 #include "everloop.h"
 #include "everloop_image.h"
 #include "voice_memory_map.h"
@@ -51,33 +52,27 @@ void cpp_loop() {
   unsigned counter = 0;
 
   fpga_version v;
-  v.identify = 0x55;
-  v.version = 0xAC;
-  // wb.SpiWrite(hal::kConfBaseAddress, (uint8_t*)&v, sizeof(fpga_version));
+  memset(&v, 0, sizeof(v));
+  wb.SpiRead(hal::kConfBaseAddress, (uint8_t*)&v, sizeof(fpga_version));
 
-  v.identify = 0;
-  v.version = 0;
-  // wb.SpiRead(hal::kConfBaseAddress, (uint8_t*)&v, sizeof(fpga_version));
-
-  printf("identify = %d\n", v.identify);
-  printf("version = %d\n", v.version);
+  printf("identify = %X\n", v.identify);
+  printf("version = %X\n", v.version);
   fflush(stdout);
 
+  // return;
   while (1) {
     for (hal::LedValue& led : image1d.leds) {
-      led.red = static_cast<int>(std::sin(counter / 128.0) * 7.0) + 8;
+      int l = static_cast<int>(std::sin(counter / 128.0) * 7.0) + 8 led.red = l;
       ;
-      led.green = static_cast<int>(std::sin(counter / 128.0) * 7.0) + 8;
+      led.green = l;
       ;
-      led.blue = static_cast<int>(std::sin(counter / 128.0) * 7.0) + 8;
-      led.white = static_cast<int>(std::sin(counter / 128.0) * 7.0) + 8;
+      led.blue = l;
+      led.white = l;
       ;
     }
 
     everloop.Write(&image1d);
     ++counter;
-
-    if (counter == 1024) esp_restart();
   }
   esp_restart();
 }

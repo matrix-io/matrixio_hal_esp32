@@ -75,7 +75,7 @@ esp_err_t WishboneBus::Init() {
   buscfg.max_transfer_sz = 0;
 
   spi_device_interface_config_t devcfg;
-  
+
   memset(&devcfg, 0, sizeof(devcfg));
 
   devcfg.command_bits = 0;
@@ -85,7 +85,7 @@ esp_err_t WishboneBus::Init() {
   devcfg.duty_cycle_pos = 128;
   devcfg.cs_ena_pretrans = 0;
   devcfg.cs_ena_posttrans = 0;
-  devcfg.clock_speed_hz = 1 * 1000 * 1000;
+  devcfg.clock_speed_hz = 12 * 1000 * 1000;
   devcfg.spics_io_num = -1;
   devcfg.flags = 0;
   devcfg.queue_size = 1;
