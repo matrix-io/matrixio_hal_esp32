@@ -25,9 +25,21 @@
 #include <string>
 #include <valarray>
 
+#include <driver/gpio.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/queue.h>
+
 #include "./microphone_array.h"
 #include "./microphone_array_location.h"
 #include "./voice_memory_map.h"
+
+static QueueHandle_t irq_queue;
+
+static void irq_handler(void *args) {
+  gpio_num_t gpio;
+  gpio = static_cast<gpio_num_t>(matrix_hal::kMicrophoneArrayIRQ);
+  xQueueSendToBackFromISR(irq_queue, &gpio, NULL);
+}
 
 namespace matrix_hal {
 
@@ -42,6 +54,20 @@ MicrophoneArray::MicrophoneArray()
   beamformed_.resize(NumberOfSamples());
 
   CalculateDelays(0.0, 0.0);
+
+  irq_queue = xQueueCreate(10, sizeof(gpio_num_t));
+
+  gpio_config_t gpioConfig;
+  gpioConfig.pin_bit_mask = GPIO_SEL_5;
+  gpioConfig.mode = GPIO_MODE_INPUT;
+  gpioConfig.pull_up_en = GPIO_PULLUP_DISABLE;
+  gpioConfig.pull_down_en = GPIO_PULLDOWN_ENABLE;
+  gpioConfig.intr_type = GPIO_INTR_ANYEDGE;
+  gpio_config(&gpioConfig);
+
+  gpio_install_isr_service(0);
+  gpio_isr_handler_add(static_cast<gpio_num_t>(matrix_hal::kMicrophoneArrayIRQ),
+                       irq_handler, NULL);
 }
 
 MicrophoneArray::~MicrophoneArray() {}
@@ -56,27 +82,28 @@ void MicrophoneArray::Setup(WishboneBus *wishbone) {
 bool MicrophoneArray::Read() {
   if (!wishbone_) return false;
 
-  if (0) {
-    if (!wishbone_->SpiReadBurst(
-            kMicrophoneArrayBaseAddress,
-            reinterpret_cast<unsigned char *>(&raw_data_[0]),
-            sizeof(int16_t) * kMicarrayBufferSize)) {
-      return false;
+  gpio_num_t gpio;
+  gpio = static_cast<gpio_num_t>(matrix_hal::kMicrophoneArrayIRQ);
+
+  xQueueReceive(irq_queue, &gpio, portMAX_DELAY);
+
+  if (wishbone_->SpiReadBurst(kMicrophoneArrayBaseAddress,
+                              reinterpret_cast<unsigned char *>(&raw_data_[0]),
+                              sizeof(int16_t) * kMicarrayBufferSize) != ESP_OK)
+    return false;
+
+  for (uint32_t s = 0; s < NumberOfSamples(); s++) {
+    int sum = 0;
+    for (uint16_t c = 0; c < kMicrophoneChannels; c++) {
+      // delaying data for beamforming 'delay & sum' algorithm
+      delayed_data_[s * kMicrophoneChannels + c] =
+          fifos_[c].PushPop(raw_data_[s * kMicrophoneChannels + c]);
+
+      // accumulation data for beamforming 'delay & sum' algorithm
+      sum += delayed_data_[s * kMicrophoneChannels + c];
     }
 
-    for (uint32_t s = 0; s < NumberOfSamples(); s++) {
-      int sum = 0;
-      for (uint16_t c = 0; c < kMicrophoneChannels; c++) {
-        // delaying data for beamforming 'delay & sum' algorithm
-        delayed_data_[s * kMicrophoneChannels + c] =
-            fifos_[c].PushPop(raw_data_[s * kMicrophoneChannels + c]);
-
-        // accumulation data for beamforming 'delay & sum' algorithm
-        sum += delayed_data_[s * kMicrophoneChannels + c];
-      }
-
-      beamformed_[s] = std::min(INT16_MAX, std::max(sum, INT16_MIN));
-    }
+    beamformed_[s] = std::min(INT16_MAX, std::max(sum, INT16_MIN));
   }
 
   return true;

@@ -24,10 +24,13 @@
 #include "esp_system.h"
 
 #include <cstring>
+
+#include "wishbone_bus.h"
+
 #include "everloop.h"
 #include "everloop_image.h"
+#include "microphone_array.h"
 #include "voice_memory_map.h"
-#include "wishbone_bus.h"
 
 namespace hal = matrix_hal;
 
@@ -39,42 +42,31 @@ struct fpga_version {
 void cpp_loop() {
   matrix_hal::WishboneBus wb;
 
-  esp_err_t ret = wb.Init();
-
-  printf("init %d\n", ret);
-  fflush(stdout);
+  wb.Init();
 
   hal::Everloop everloop;
-  hal::EverloopImage image1d;
-
   everloop.Setup(&wb);
 
-  unsigned counter = 0;
+  hal::MicrophoneArray mics;
+  mics.Setup(&wb);
+
+  hal::EverloopImage image1d;
 
   fpga_version v;
-  memset(&v, 0, sizeof(v));
   wb.SpiRead(hal::kConfBaseAddress, (uint8_t*)&v, sizeof(fpga_version));
 
   printf("identify = %X\n", v.identify);
   printf("version = %X\n", v.version);
   fflush(stdout);
 
-  // return;
   while (1) {
-    for (hal::LedValue& led : image1d.leds) {
-      int l = static_cast<int>(std::sin(counter / 128.0) * 7.0) + 8 led.red = l;
-      ;
-      led.green = l;
-      ;
-      led.blue = l;
-      led.white = l;
-      ;
-    }
+    mics.Read(); /* Reading 8-mics buffer from de FPGA */
 
+    for (uint32_t s = 0; s < image1d.leds.size(); s++) {
+      image1d.leds[s].green = fabs(mics.At(s, 0)) / 512;
+    }
     everloop.Write(&image1d);
-    ++counter;
   }
-  esp_restart();
 }
 
 extern "C" {

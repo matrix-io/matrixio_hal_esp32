@@ -60,8 +60,6 @@ class WishboneBus {
 
  private:
   spi_device_handle_t spi_;
-  uint8_t rx_buffer_[128];
-  uint8_t tx_buffer_[128];
 };
 };      // namespace matrix_hal
 #endif  // CPP_DRIVER_WISHBONE_BUS_H_

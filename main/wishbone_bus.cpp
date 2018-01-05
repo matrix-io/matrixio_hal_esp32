@@ -26,35 +26,10 @@
 #define FPGA_SPI_MISO GPIO_NUM_21
 #define FPGA_SPI_SCLK GPIO_NUM_32
 
-#define NOP() asm volatile("nop")
+static uint8_t global_rx_buffer[4096];
+static uint8_t global_tx_buffer[4096];
 
-void cs_active(spi_transaction_t *trans) {
-  gpio_set_level(FPGA_SPI_CS, 0);
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-  NOP();
-}
+void cs_active(spi_transaction_t *trans) { gpio_set_level(FPGA_SPI_CS, 0); }
 
 void cs_inactive(spi_transaction_t *trans) { gpio_set_level(FPGA_SPI_CS, 1); }
 
@@ -85,19 +60,16 @@ esp_err_t WishboneBus::Init() {
   devcfg.duty_cycle_pos = 128;
   devcfg.cs_ena_pretrans = 0;
   devcfg.cs_ena_posttrans = 0;
-  devcfg.clock_speed_hz = 12 * 1000 * 1000;
-  devcfg.spics_io_num = -1;
+  devcfg.clock_speed_hz = 10 * 1000 * 1000;
+  devcfg.spics_io_num = FPGA_SPI_CS;
   devcfg.flags = 0;
   devcfg.queue_size = 1;
-  devcfg.pre_cb = cs_active;
-  devcfg.post_cb = cs_inactive;
+  devcfg.pre_cb = 0;
+  devcfg.post_cb = 0;
 
-  if ((ret = spi_bus_initialize(HSPI_HOST, &buscfg, 0))) return ret;
+  if ((ret = spi_bus_initialize(HSPI_HOST, &buscfg, 1))) return ret;
 
   if ((ret = spi_bus_add_device(HSPI_HOST, &devcfg, &spi_))) return ret;
-
-  gpio_set_direction(FPGA_SPI_CS, GPIO_MODE_OUTPUT);
-  gpio_set_level(FPGA_SPI_CS, 1);
 
   return ESP_OK;
 }
@@ -119,30 +91,32 @@ esp_err_t WishboneBus::SpiTransfer(uint8_t *send_buffer,
 }
 
 esp_err_t WishboneBus::RegWrite16(uint16_t add, uint16_t data) {
-  hardware_address *hw_addr = reinterpret_cast<hardware_address *>(tx_buffer_);
+  hardware_address *hw_addr =
+      reinterpret_cast<hardware_address *>(global_tx_buffer);
   hw_addr->reg = add;
   hw_addr->burst = 0;
   hw_addr->readnwrite = 0;
 
-  memcpy(&tx_buffer_[2], &data, sizeof(data));
+  memcpy(&global_tx_buffer[2], &data, sizeof(data));
 
-  esp_err_t ret = SpiTransfer(tx_buffer_, rx_buffer_, 4);
+  esp_err_t ret = SpiTransfer(global_tx_buffer, global_rx_buffer, 4);
 
   return ret;
 }
 
 esp_err_t WishboneBus::RegRead16(uint16_t add, uint16_t *pdata) {
-  memset(tx_buffer_, 0, 4);
+  memset(global_tx_buffer, 0, 4);
 
-  hardware_address *hw_addr = reinterpret_cast<hardware_address *>(tx_buffer_);
+  hardware_address *hw_addr =
+      reinterpret_cast<hardware_address *>(global_tx_buffer);
 
   hw_addr->reg = add;
   hw_addr->burst = 0;
   hw_addr->readnwrite = 1;
 
-  esp_err_t ret = SpiTransfer(tx_buffer_, rx_buffer_, 4);
+  esp_err_t ret = SpiTransfer(global_tx_buffer, global_rx_buffer, 4);
 
-  if (ret == ESP_OK) memcpy(pdata, &rx_buffer_[2], 2);
+  if (ret == ESP_OK) memcpy(pdata, &global_rx_buffer[2], 2);
   return ret;
 }
 
@@ -169,13 +143,14 @@ esp_err_t WishboneBus::SpiRead(uint16_t add, uint8_t *data, int length) {
 }
 
 esp_err_t WishboneBus::SpiReadBurst(uint16_t add, uint8_t *data, int length) {
-  hardware_address *hw_addr = reinterpret_cast<hardware_address *>(tx_buffer_);
+  hardware_address *hw_addr =
+      reinterpret_cast<hardware_address *>(global_tx_buffer);
 
   hw_addr->reg = add;
   hw_addr->burst = 1;
   hw_addr->readnwrite = 1;
 
-  return SpiTransfer(tx_buffer_, data, length);
+  return SpiTransfer(global_tx_buffer, data, length);
 }
 
 };  // namespace matrix_hal
