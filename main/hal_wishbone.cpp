@@ -55,8 +55,8 @@ void cpp_loop() {
   fpga_version v;
   wb.SpiRead(hal::kConfBaseAddress, (uint8_t*)&v, sizeof(fpga_version));
 
-  printf("identify = %X\n", v.identify);
-  printf("version = %X\n", v.version);
+  printf("Identify = 0x%X\n", v.identify);
+  printf("Version = 0x%X\n", v.version);
   fflush(stdout);
 
   while (1) {
@@ -64,6 +64,7 @@ void cpp_loop() {
 
     for (uint32_t s = 0; s < image1d.leds.size(); s++) {
       image1d.leds[s].green = fabs(mics.At(s, 0)) / 512;
+      printf("%d\n", mics.At(s, 0));
     }
     everloop.Write(&image1d);
   }

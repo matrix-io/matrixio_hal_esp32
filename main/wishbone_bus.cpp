@@ -143,6 +143,7 @@ esp_err_t WishboneBus::SpiRead(uint16_t add, uint8_t *data, int length) {
 }
 
 esp_err_t WishboneBus::SpiReadBurst(uint16_t add, uint8_t *data, int length) {
+  esp_err_t ret;
   hardware_address *hw_addr =
       reinterpret_cast<hardware_address *>(global_tx_buffer);
 
@@ -150,7 +151,11 @@ esp_err_t WishboneBus::SpiReadBurst(uint16_t add, uint8_t *data, int length) {
   hw_addr->burst = 1;
   hw_addr->readnwrite = 1;
 
-  return SpiTransfer(global_tx_buffer, data, length);
+  ret = SpiTransfer(global_tx_buffer, global_rx_buffer, length + 2);
+  if (ret != ESP_OK) return ret;
+
+  memcpy(data, &global_rx_buffer[2], length);
+  return ESP_OK;
 }
 
 };  // namespace matrix_hal
