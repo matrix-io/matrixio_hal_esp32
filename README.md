@@ -8,7 +8,7 @@ This is the official set of ESP-IDF components for [MATRIX Voice](https://www.ma
 * **PC** with either Windows, Linux or MAC operating system.
 * **ESP32 Toolchain** to compile applications for ESP32.
 * **ESP IDF**, the API for the ESP32.
-* **Raspberry PI** to connect the MATRIX Voice and upload the Software into the ESP32 and keep update the **FPGA** firmware.
+* **Raspberry PI** to connect the MATRIX Voice and upload the Software into the ESP32 and keep updated the **FPGA** firmware.
 
 ## ESP-IDF and Toolchain Setup (PC)
 
@@ -48,9 +48,9 @@ cd matrixio_hal_esp32/examples/arc_demo
 make menuconfig
 ```
 
-Configure your ESP framework envioroment. Save your configuration and then exit the application. 
+Configure your ESP framework environment. Save your configuration and then exit the application. 
 
-![ESP Framework configuration](ESP-ID_config.png)
+![ESP Framework configuration](ESP-IDF_config.png)
 
 Now build the application with:
 
@@ -58,7 +58,26 @@ Now build the application with:
 make
 ```
 
+## Deploy & Uploading (Raspberry Pi)
+
+To deploy and flash the application into the ESP it's necessary to connect the MATRIX Voice with a Raspberry PI.  
+
+### Pre-Requisites
+
+Install the MATRIX Voice software. It keeps the **FPGA** firmware updated and install few tools to flash the ESP32. 
+
+```
+# Add repo and key
+curl https://apt.matrix.one/doc/apt-key.gpg | sudo apt-key add -
+echo "deb https://apt.matrix.one/raspbian $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/matrixlabs.list
+
+# Update packages and install
+sudo apt-get update
+sudo apt-get upgrade
+
+# Installation
+sudo apt install matrixio-creator-init
+```
 
 
-## Deploy & Uploading
 
