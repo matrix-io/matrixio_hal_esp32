@@ -1,5 +1,5 @@
 ESPTOOLPY := voice_esptool
-ESPPORT := ttyS0
+ESPPORT := /dev/ttyS0
 ESPTOOLPY_SERIAL := $(ESPTOOLPY) --port $(ESPPORT) --baud $(ESPBAUD) --before $(CONFIG_ESPTOOLPY_BEFORE) --after $(CONFIG_ESPTOOLPY_AFTER)
 ESPTOOLPY_WRITE_FLASH=$(ESPTOOLPY_SERIAL) write_flash $(if $(CONFIG_ESPTOOLPY_COMPRESSED),-z,-u) $(ESPTOOL_WRITE_FLASH_OPTIONS)
 
@@ -9,5 +9,7 @@ deploy:
 	$(APP_BIN) \
 	build/partitions_singleapp.bin \
 	$(RPI_HOST):/tmp
-	@echo "In the RASPBERRY PI"
-	@echo $(DEPLOY_CMD) | sed -e 's:'$(PWD)/xxx/'::g'
+	@echo "********************"	
+	@echo "To program the ESP32"
+	@echo ssh $(RPI_HOST) $(DEPLOY_CMD) | sed -e "s=bootloader/==g" | sed -e "s=$(PWD)==g" | sed -e "s=/build=/tmp=g"
+ 
