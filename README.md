@@ -65,7 +65,7 @@ cd matrixio_hal_esp32/examples/arc_demo
 make menuconfig
 ```
 
-Configure the ESP framework environment. Save your configuration and then exit the application(Default configuration works well. Just skip the setup pressing *Exit* in the first window). 
+Configure the ESP framework environment. Save your configuration and then exit the application. Default configuration works well. Just skip the setup pressing *Exit* in the first window. 
 
 ![ESP Framework configuration](ESP-IDF_config.png)
 
@@ -84,7 +84,7 @@ $ make deploy
 *********************************
 Copying files to the Raspberry PI
 *********************************
-pi@RASPBERRY_PI_ADDRESS password: 
+pi@RASPBERRY_IP_ADDRESS password: 
 bootloader.bin                                                     100%   19KB   5.7MB/s   00:00    
 arc_demo.bin                                                       100%  382KB  10.7MB/s   00:00    
 partitions_singleapp.bin                                           100% 3072     2.6MB/s   00:00    
@@ -92,7 +92,7 @@ partitions_singleapp.bin                                           100% 3072    
 *********************************
 Programmig the ESP32
 *********************************
-pi@RASPBERRY_PI_ADDRESS password: 
+pi@RASPBERRY_IP_ADDRESS password: 
 -----------------------------------
 esptool.py wrapper for MATRIX Voice
 -----------------------------------
