@@ -48,7 +48,7 @@ cd matrixio_hal_esp32/examples/arc_demo
 make menuconfig
 ```
 
-Configure your ESP framework environment. Save your configuration and then exit the application. 
+Configure your ESP framework environment. Save your configuration and then exit the application (the unchanged setup works very well). 
 
 ![ESP Framework configuration](ESP-IDF_config.png)
 
