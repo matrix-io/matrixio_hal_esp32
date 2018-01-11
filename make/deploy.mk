@@ -15,4 +15,4 @@ deploy: $(APP_BIN)
 	@echo "**************************************************************"	
 	@echo "Programming the ESP32 in MATRIX Voice through the Raspberry PI"
 	@echo "**************************************************************"	
-	tar cf - build/bootloader/bootloader.bin build/*.bin | ssh $(RPI_HOST) 'tar xf - -C /tmp;$(DEPLOY_CMD)'
+	tar cf - build/bootloader/bootloader.bin build/*.bin | ssh $(RPI_HOST) 'tar xf - -C /tmp;sudo voice_esp32_reset;$(DEPLOY_CMD)'
