@@ -8,21 +8,11 @@ MV_ESPTOOLPY_SERIAL := $(MV_ESPTOOLPY) --port $(ESPPORT) --baud $(ESPBAUD) --bef
 
 ESPTOOL_WRITE_FLASH := $(MV_ESPTOOLPY_SERIAL) write_flash $(if $(CONFIG_ESPTOOL_COMPRESSED),-z,-u) $(ESPTOOL_WRITE_FLASH_OPTIONS)
 
-DEPLOY_CMD := $(shell echo $(ESPTOOL_WRITE_FLASH) $(ESPTOOL_ALL_FLASH_ARGS) | sed -e "s=bootloader/==g" | sed -e "s=$(PWD)==g" | sed -e "s=/build=/tmp=g")
+DEPLOY_CMD := $(shell echo $(ESPTOOL_WRITE_FLASH) $(ESPTOOL_ALL_FLASH_ARGS) | sed -e "s=$(PWD)=/tmp=g")
 
 deploy:
 	@echo ""
-	@echo "*********************************"	
-	@echo "Copying files to the Raspberry PI"
-	@echo "*********************************"	
-	scp build/bootloader/bootloader.bin \
-	$(APP_BIN) \
-	build/partitions_singleapp.bin \
-	$(RPI_HOST):/tmp
-	@echo ""
-	@echo "*********************************"	
-	@echo "Programmig the ESP32"
-	@echo "*********************************"	
-	ssh $(RPI_HOST) $(DEPLOY_CMD)
-
- 
+	@echo "**************************************************************"	
+	@echo "Programming the ESP32 in MATRIX Voice through the Raspberry PI"
+	@echo "**************************************************************"	
+	tar cf - build/bootloader/bootloader.bin build/*.bin | ssh $(RPI_HOST) 'tar xf - -C /tmp;$(DEPLOY_CMD)'
