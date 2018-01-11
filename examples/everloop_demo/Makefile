@@ -3,7 +3,7 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := arc_demo
+PROJECT_NAME := everloop_demo
 
 EXTRA_COMPONENT_DIRS += $(PROJECT_PATH)/../../components
 
