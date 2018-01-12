@@ -65,8 +65,8 @@ void cpp_loop() {
     kiss_fft(cfg, cx_in, cx_out);
 
     for (uint32_t i = 0; i < image1d.leds.size(); i++) {
-      float z = q2double(qmul((cx_out[i].r), (cx_out[i].r)) +
-                         qmul((cx_out[i].i), (cx_out[i].i)));
+      float z = q2double(qmul((cx_out[i+1].r), (cx_out[i+1].r)) +
+                         qmul((cx_out[i+1].i), (cx_out[i+1].i)));
       image1d.leds[i].blue = z * 512;
     }
     everloop.Write(&image1d);
