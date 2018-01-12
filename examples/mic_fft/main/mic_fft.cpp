@@ -54,6 +54,14 @@ void cpp_loop() {
   kiss_fft_cpx cx_out[mics.NumberOfSamples()];
   kiss_fft_cfg cfg = kiss_fft_alloc(mics.NumberOfSamples(), 0, 0, 0);
 
+  printf("Mics appa\n");
+
+  printf("lows\tlows_ma\tmiddles\tmidd_ma\thighs\thighs_ma \n");
+
+  float lows_ma = 0;
+  float middles_ma = 0;
+  float highs_ma = 0;
+
   while (1) {
     mics.Read();
 
@@ -64,10 +72,53 @@ void cpp_loop() {
 
     kiss_fft(cfg, cx_in, cx_out);
 
-    for (uint32_t i = 0; i < image1d.leds.size(); i++) {
-      float z = q2double(qmul((cx_out[i+1].r), (cx_out[i+1].r)) +
-                         qmul((cx_out[i+1].i), (cx_out[i+1].i)));
-      image1d.leds[i].blue = z * 512;
+    float lows = 0;
+    float middles = 0;
+    float highs = 0;
+    uint32_t array_size = 10;
+
+    for (uint32_t i = 0; i < image1d.leds.size(); i++)
+    {
+      float z = q2double(qmul((cx_out[i + 1].r), (cx_out[i + 1].r)) +
+                         qmul((cx_out[i + 1].i), (cx_out[i + 1].i)));
+
+      if (i < image1d.leds.size() / 3)
+      { // LOWS
+        lows += z * 512.0;
+      }
+      else if (i < image1d.leds.size() * 2 / 3)
+      { // MIDDLES
+        middles += z * 512.0;
+      }
+      else
+      { // HIGHS
+        highs += z * 512.0;
+      }
+    }
+
+    printf("%f ", lows);
+    printf("%f ", middles);
+    printf("%f ", highs);
+
+    lows = lows / image1d.leds.size() * 3;
+    middles = middles / image1d.leds.size() * 3;
+    highs = highs / image1d.leds.size() * 3;
+
+    printf("%f ", lows_ma);
+    printf("%f ", middles_ma);
+    printf("%f ", highs_ma);
+
+    printf("\n");
+
+    lows_ma = lows_ma + (lows - lows_ma) / (array_size + 1.0);
+    middles_ma = middles_ma + (middles - middles_ma) / (array_size + 1.0);
+    highs_ma = highs_ma + (highs - highs_ma) / (array_size + 1.0);
+
+    for (uint32_t i = 0; i < image1d.leds.size(); i++)
+    {
+      image1d.leds[i].red = lows_ma;
+      image1d.leds[i].green = middles_ma;
+      image1d.leds[i].blue = highs_ma;
     }
     everloop.Write(&image1d);
   }
