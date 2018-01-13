@@ -10,7 +10,7 @@ ESPTOOL_WRITE_FLASH := $(MV_ESPTOOLPY_SERIAL) write_flash $(if $(CONFIG_ESPTOOL_
 
 DEPLOY_CMD := $(shell echo $(ESPTOOL_WRITE_FLASH) $(ESPTOOL_ALL_FLASH_ARGS) | sed -e "s=$(PWD)=/tmp=g")
 
-deploy: $(APP_BIN)
+deploy: all_binaries
 	@echo ""
 	@echo "**************************************************************"	
 	@echo "Programming the ESP32 in MATRIX Voice through the Raspberry PI"
