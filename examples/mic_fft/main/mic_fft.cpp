@@ -32,12 +32,10 @@
 #include "microphone_array.h"
 #include "voice_memory_map.h"
 
-namespace hal = matrix_hal;
+#include "kiss_fft.h"
+#include "qmath.h"
 
-struct fpga_version {
-  uint32_t identify;
-  uint32_t version;
-};
+namespace hal = matrix_hal;
 
 void cpp_loop() {
   matrix_hal::WishboneBus wb;
@@ -52,40 +50,33 @@ void cpp_loop() {
 
   hal::EverloopImage image1d;
 
-  fpga_version v;
-  wb.SpiRead(hal::kConfBaseAddress, (uint8_t*)&v, sizeof(fpga_version));
+  kiss_fft_cpx cx_in[mics.NumberOfSamples()];
+  kiss_fft_cpx cx_out[mics.NumberOfSamples()];
+  kiss_fft_cfg cfg = kiss_fft_alloc(mics.NumberOfSamples(), 0, 0, 0);
 
-  printf("Identify = 0x%X\n", v.identify);
-  printf("Version = 0x%X\n", v.version);
-  fflush(stdout);
+  while (1) {
+    mics.Read();
 
-  int counter = 0;
-  uint64_t instantE = 0;
-  uint64_t avgEnergy = 0;
-  std::valarray<uint64_t> localAverage(20);
-  localAverage = 0;
-
-  while (true) {
-    mics.Read(); /* Reading 8-mics buffer from de FPGA */
-    instantE = 0;
     for (uint32_t s = 0; s < mics.NumberOfSamples(); s++) {
-      instantE = instantE + (mics.At(s, 0)) * (mics.At(s, 0));
+      cx_in[s].r = float2q(fabs(mics.At(s, 0)) / 1024.0);
+      cx_in[s].i = 0;
     }
 
-    localAverage[counter % 20] = instantE;
-    avgEnergy = 0;
-    for (auto& data : localAverage) {
-      avgEnergy = (avgEnergy + data);
-    }
+    kiss_fft(cfg, cx_in, cx_out);
 
-    avgEnergy = avgEnergy / 20;
-
-    for (auto& led : image1d.leds) {
-      led.red = avgEnergy >> 24;
+    for (uint32_t i = 0; i < image1d.leds.size(); i++) {
+      float z = q2double(qmul((cx_out[i + 1].r), (cx_out[i + 1].r)) +
+                         qmul((cx_out[i + 1].i), (cx_out[i + 1].i))) *
+                512;
+      if (i < 6) {
+        image1d.leds[i].Set(0, 0, z, 0);
+      } else if (i < 12) {
+        image1d.leds[i].Set(0, z, 0, 0);
+      } else {
+        image1d.leds[i].Set(z, 0, 0, 0);
+      }
     }
     everloop.Write(&image1d);
-
-    counter++;
   }
 }
 
