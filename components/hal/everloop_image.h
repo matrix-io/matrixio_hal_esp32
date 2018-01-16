@@ -35,6 +35,14 @@ class LedValue {
     white = 0;
   }
 
+  void Set(uint32_t r, uint32_t g, uint32_t b, uint32_t w)
+  {
+    red = r;
+    green = g;
+    blue = b;
+    white = w;
+  }
+
   uint32_t red;
   uint32_t green;
   uint32_t blue;
@@ -51,3 +59,4 @@ class EverloopImage {
 
 };      // namespace matrix_hal
 #endif  // CPP_DRIVER_EVERLOOP_IMAGE_H_
+
