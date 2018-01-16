@@ -59,14 +59,33 @@ void cpp_loop() {
   printf("Version = 0x%X\n", v.version);
   fflush(stdout);
 
-  while (1) {
-    mics.Read(); /* Reading 8-mics buffer from de FPGA */
+  int counter = 0;
+  uint64_t instantE = 0;
+  uint64_t avgEnergy = 0;
+  std::valarray<uint64_t> localAverage(20);
+  localAverage = 0;
 
-    for (uint32_t s = 0; s < image1d.leds.size(); s++) {
-      image1d.leds[s].green = fabs(mics.At(s, 0)) / 512;
-      printf("%d\n", mics.At(s, 0));
+  while (true) {
+    mics.Read(); /* Reading 8-mics buffer from de FPGA */
+    instantE = 0;
+    for (uint32_t s = 0; s < mics.NumberOfSamples(); s++) {
+      instantE = instantE + (mics.At(s, 0)) * (mics.At(s, 0));
+    }
+
+    localAverage[counter % 20] = instantE;
+    avgEnergy = 0;
+    for (auto& data : localAverage) {
+      avgEnergy = (avgEnergy + data);
+    }
+
+    avgEnergy = avgEnergy / 20;
+
+    for (auto& led : image1d.leds) {
+      led.red = avgEnergy >> 24;
     }
     everloop.Write(&image1d);
+
+    counter++;
   }
 }
 
