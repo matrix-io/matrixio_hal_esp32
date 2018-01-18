@@ -14,6 +14,15 @@ This is the official set of ESP-IDF components for [MATRIX Voice](https://www.ma
 
 Install the MATRIX Voice software in the **Raspberry PI**. It keeps the **FPGA** firmware updated and install few tools to flash the ESP-WROOM-32. 
 
+### Dowload Rasbian Stretch 
+
+Download the latest **Raspbian Stretch** and set up  the Rasberry Pi. More information in:[https://www.raspberrypi.org/documentation/installation/installing-images/README.md]https://www.raspberrypi.org/documentation/installation/installing-images/README.md 
+```
+https://downloads.raspberrypi.org/raspbian_lite_latest
+https://downloads.raspberrypi.org/raspbian_latest
+```
+
+### Install MATRIX Voice Software
 ```
 # Add repo and key
 curl https://apt.matrix.one/doc/apt-key.gpg | sudo apt-key add -
@@ -25,6 +34,9 @@ sudo apt-get upgrade
 
 # Installation
 sudo apt install matrixio-creator-init
+
+# Reboot
+sudo reboot
 ```
 
 ## ESP-IDF and Toolchain Setup (PC)
@@ -50,7 +62,7 @@ export PATH="$PATH:<route to toolchain>/xtensa-esp32-elf/bin"
 export IDF_PATH=<route to ESP-IDF>/esp-idf
 ```
 
-## Cloning, Compiling & Deploy
+## Cloning, Compiling & Deploy (PC)
 
 Clone de repo MATRIX Voice HAL
 
@@ -61,7 +73,7 @@ git clone https://github.com/matrix-io/matrixio_hal_esp32.git
 Everloop example
 
 ```
-cd matrixio_hal_esp32/examples/arc_demo
+cd matrixio_hal_esp32/examples/everloop_demo
 make menuconfig
 ```
 
@@ -116,3 +128,15 @@ Leaving...
 Hard resetting...
 
 ```
+
+### Serial Monitor (Rasberry Pi)
+
+The ESP32 serial monitor is attached to the **ttyS0** in the Rasberry Pi. Configure the **ttyS0** serial port as:
+
+```
+Serial Device         : /dev/ttyS0  
+Bps/Par/Bits          : 115200 8N1        
+Hardware Flow Control : No
+Software Flow Control : No  
+```
+
