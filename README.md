@@ -16,7 +16,7 @@ Install the MATRIX Voice software in the **Raspberry PI**. It keeps the **FPGA**
 
 ### Dowload Rasbian Stretch 
 
-Download the latest **Raspbian Stretch** and set up  the Rasberry Pi. More information in:[https://www.raspberrypi.org/documentation/installation/installing-images/README.md]https://www.raspberrypi.org/documentation/installation/installing-images/README.md 
+Download the latest **Raspbian Stretch** and set up  the Rasberry Pi. More information in:[https://www.raspberrypi.org/documentation/installation/installing-images/README.md](https://www.raspberrypi.org/documentation/installation/installing-images/README.md)
 ```
 https://downloads.raspberrypi.org/raspbian_lite_latest
 https://downloads.raspberrypi.org/raspbian_latest
