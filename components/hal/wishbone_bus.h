@@ -34,8 +34,7 @@ namespace matrix_hal {
 
 struct hardware_address {
   uint8_t readnwrite : 1;
-  uint8_t burst : 1;
-  uint16_t reg : 14;
+  uint16_t reg : 15;
 };
 
 class WishboneBus {
@@ -51,6 +50,7 @@ class WishboneBus {
 
   esp_err_t SpiRead(uint16_t add, uint8_t* data, int length);
   esp_err_t SpiReadBurst(uint16_t add, uint8_t* data, int length);
+  esp_err_t SpiWriteBurst(uint16_t add, const uint8_t *data, int length);
 
   uint32_t FPGAFrequency() { return 50000000; }
 

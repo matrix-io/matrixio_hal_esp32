@@ -60,7 +60,7 @@ esp_err_t WishboneBus::Init() {
   devcfg.duty_cycle_pos = 128;
   devcfg.cs_ena_pretrans = 0;
   devcfg.cs_ena_posttrans = 0;
-  devcfg.clock_speed_hz = 10 * 1000 * 1000;
+  devcfg.clock_speed_hz = 8 * 1000 * 1000;
   devcfg.spics_io_num = FPGA_SPI_CS;
   devcfg.flags = 0;
   devcfg.queue_size = 1;
@@ -94,7 +94,6 @@ esp_err_t WishboneBus::RegWrite16(uint16_t add, uint16_t data) {
   hardware_address *hw_addr =
       reinterpret_cast<hardware_address *>(global_tx_buffer);
   hw_addr->reg = add;
-  hw_addr->burst = 0;
   hw_addr->readnwrite = 0;
 
   memcpy(&global_tx_buffer[2], &data, sizeof(data));
@@ -111,7 +110,6 @@ esp_err_t WishboneBus::RegRead16(uint16_t add, uint16_t *pdata) {
       reinterpret_cast<hardware_address *>(global_tx_buffer);
 
   hw_addr->reg = add;
-  hw_addr->burst = 0;
   hw_addr->readnwrite = 1;
 
   esp_err_t ret = SpiTransfer(global_tx_buffer, global_rx_buffer, 4);
@@ -148,13 +146,28 @@ esp_err_t WishboneBus::SpiReadBurst(uint16_t add, uint8_t *data, int length) {
       reinterpret_cast<hardware_address *>(global_tx_buffer);
 
   hw_addr->reg = add;
-  hw_addr->burst = 1;
   hw_addr->readnwrite = 1;
 
   ret = SpiTransfer(global_tx_buffer, global_rx_buffer, length + 2);
   if (ret != ESP_OK) return ret;
 
   memcpy(data, &global_rx_buffer[2], length);
+  return ESP_OK;
+}
+
+esp_err_t WishboneBus::SpiWriteBurst(uint16_t add, const uint8_t *data, int length) {
+  esp_err_t ret;
+  hardware_address *hw_addr =
+      reinterpret_cast<hardware_address *>(global_tx_buffer);
+
+  hw_addr->reg = add;
+  hw_addr->readnwrite = 0;
+
+  memcpy(&global_tx_buffer[2], data,length);
+
+  ret = SpiTransfer(global_tx_buffer, global_rx_buffer, length + 2);
+  if (ret != ESP_OK) return ret;
+ 
   return ESP_OK;
 }
 
