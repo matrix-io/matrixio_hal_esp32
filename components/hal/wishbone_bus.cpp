@@ -29,10 +29,6 @@
 static uint8_t global_rx_buffer[4096];
 static uint8_t global_tx_buffer[4096];
 
-void cs_active(spi_transaction_t *trans) { gpio_set_level(FPGA_SPI_CS, 0); }
-
-void cs_inactive(spi_transaction_t *trans) { gpio_set_level(FPGA_SPI_CS, 1); }
-
 namespace matrix_hal {
 
 esp_err_t WishboneBus::Init() {
@@ -80,10 +76,9 @@ esp_err_t WishboneBus::SpiTransfer(uint8_t *send_buffer,
 
   memset(&trans, 0, sizeof(trans));  // Zero out the transaction
 
-  // trans.flags = 0;
   trans.length = 8 * size;
   trans.rxlength = 8 * size;
-  // trans.user = 0;
+
   trans.rx_buffer = (void *)receive_buffer;
   trans.tx_buffer = (void *)send_buffer;
 
@@ -91,84 +86,43 @@ esp_err_t WishboneBus::SpiTransfer(uint8_t *send_buffer,
 }
 
 esp_err_t WishboneBus::RegWrite16(uint16_t add, uint16_t data) {
-  hardware_address *hw_addr =
-      reinterpret_cast<hardware_address *>(global_tx_buffer);
-  hw_addr->reg = add;
-  hw_addr->readnwrite = 0;
-
-  memcpy(&global_tx_buffer[2], &data, sizeof(data));
-
-  esp_err_t ret = SpiTransfer(global_tx_buffer, global_rx_buffer, 4);
-
-  return ret;
+  return SpiWrite(add, reinterpret_cast<uint8_t *>(&data), sizeof(uint16_t));
 }
 
 esp_err_t WishboneBus::RegRead16(uint16_t add, uint16_t *pdata) {
-  memset(global_tx_buffer, 0, 4);
-
-  hardware_address *hw_addr =
-      reinterpret_cast<hardware_address *>(global_tx_buffer);
-
-  hw_addr->reg = add;
-  hw_addr->readnwrite = 1;
-
-  esp_err_t ret = SpiTransfer(global_tx_buffer, global_rx_buffer, 4);
-
-  if (ret == ESP_OK) memcpy(pdata, &global_rx_buffer[2], 2);
-  return ret;
-}
-
-esp_err_t WishboneBus::SpiWrite(uint16_t add, uint8_t *data, int length) {
-  esp_err_t ret;
-  uint16_t *words = reinterpret_cast<uint16_t *>(data);
-
-  for (uint16_t w = 0; w < (length / 2); w++) {
-    ret = RegWrite16(add + w, words[w]);
-    if (ret != ESP_OK) return ret;
-  }
-  return ESP_OK;
+  return SpiRead(add, reinterpret_cast<uint8_t *>(pdata), sizeof(uint16_t));
 }
 
 esp_err_t WishboneBus::SpiRead(uint16_t add, uint8_t *data, int length) {
-  esp_err_t ret;
-  uint16_t *words = reinterpret_cast<uint16_t *>(data);
+  memset(global_tx_buffer, 0, length);
 
-  for (uint16_t w = 0; w < (length / 2); w++) {
-    ret = RegRead16(add + w, &words[w]);
-    if (ret != ESP_OK) return ret;
-  }
-  return ESP_OK;
-}
-
-esp_err_t WishboneBus::SpiReadBurst(uint16_t add, uint8_t *data, int length) {
-  esp_err_t ret;
   hardware_address *hw_addr =
       reinterpret_cast<hardware_address *>(global_tx_buffer);
 
   hw_addr->reg = add;
   hw_addr->readnwrite = 1;
 
-  ret = SpiTransfer(global_tx_buffer, global_rx_buffer, length + 2);
+  esp_err_t ret = SpiTransfer(global_tx_buffer, global_rx_buffer, length + 2);
+
   if (ret != ESP_OK) return ret;
 
   memcpy(data, &global_rx_buffer[2], length);
+
   return ESP_OK;
 }
 
-esp_err_t WishboneBus::SpiWriteBurst(uint16_t add, const uint8_t *data, int length) {
-  esp_err_t ret;
+esp_err_t WishboneBus::SpiWrite(uint16_t add, const uint8_t *data, int length) {
+  memset(global_tx_buffer, 0, length + sizeof(hardware_address));
+
   hardware_address *hw_addr =
       reinterpret_cast<hardware_address *>(global_tx_buffer);
 
   hw_addr->reg = add;
   hw_addr->readnwrite = 0;
 
-  memcpy(&global_tx_buffer[2], data,length);
+  memcpy(&global_tx_buffer[2], data, length);
 
-  ret = SpiTransfer(global_tx_buffer, global_rx_buffer, length + 2);
-  if (ret != ESP_OK) return ret;
- 
-  return ESP_OK;
+  return SpiTransfer(global_tx_buffer, global_rx_buffer, length + 2);
 }
 
 };  // namespace matrix_hal

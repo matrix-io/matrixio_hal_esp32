@@ -46,11 +46,8 @@ class WishboneBus {
   esp_err_t RegWrite16(uint16_t add, uint16_t data);
   esp_err_t RegRead16(uint16_t add, uint16_t* data);
 
-  esp_err_t SpiWrite(uint16_t add, uint8_t* data, int length);
-
   esp_err_t SpiRead(uint16_t add, uint8_t* data, int length);
-  esp_err_t SpiReadBurst(uint16_t add, uint8_t* data, int length);
-  esp_err_t SpiWriteBurst(uint16_t add, const uint8_t *data, int length);
+  esp_err_t SpiWrite(uint16_t add, const uint8_t* data, int length);
 
   uint32_t FPGAFrequency() { return 50000000; }
 
