@@ -31,7 +31,7 @@ namespace matrix_hal {
 const uint32_t kPDMFrequency = 3000000;
 const uint32_t kCICStages = 3;
 const uint16_t kCICWidth = 23;
-const uint16_t kMicarrayBufferSize = 1024;
+const uint16_t kMicarrayBufferSize = 2048;
 const uint16_t kMicrophoneArrayIRQ = 5;
 const uint16_t kMicrophoneChannels = 8;
 
@@ -60,7 +60,7 @@ class MicrophoneArray : public MatrixDriver {
   }
 
   int16_t& At(int16_t sample, int16_t channel) {
-    return delayed_data_[sample * kMicrophoneChannels + channel];
+    return delayed_data_[channel * NumberOfSamples() + sample];
   }
 
   int16_t& Beam(int16_t sample) { return beamformed_[sample]; }
