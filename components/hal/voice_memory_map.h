@@ -27,10 +27,9 @@ namespace matrix_hal {
 
 /* FPGA Wishbone address map */
 const uint32_t kConfBaseAddress = 0x0000;
-const uint32_t kUartBaseAddress = 0x0800;
-const uint32_t kMicrophoneArrayBaseAddress = 0x1800;
-const uint32_t kEverloopBaseAddress = 0x2000;
-const uint32_t kGPIOBaseAddress = 0x2800;
+const uint32_t kMicrophoneArrayBaseAddress = 0x2000;
+const uint32_t kEverloopBaseAddress = 0x3000;
+const uint32_t kDACBaseAddress = 0x6000;
 
 };      // namespace matrix_hal
 #endif  // CPP_DRIVER_CREATOR_MEMORY_MAP_H_

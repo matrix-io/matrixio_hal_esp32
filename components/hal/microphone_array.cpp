@@ -87,20 +87,23 @@ bool MicrophoneArray::Read() {
 
   xQueueReceive(irq_queue, &gpio, portMAX_DELAY);
 
-  if (wishbone_->SpiReadBurst(kMicrophoneArrayBaseAddress,
-                              reinterpret_cast<unsigned char *>(&raw_data_[0]),
-                              sizeof(int16_t) * kMicarrayBufferSize) != ESP_OK)
-    return false;
-
+  for (uint16_t c = 0; c < kMicrophoneChannels; c++) {
+    if (wishbone_->SpiRead(
+            kMicrophoneArrayBaseAddress + c * NumberOfSamples(),
+            reinterpret_cast<unsigned char *>(&raw_data_[0]),
+            sizeof(int16_t) * NumberOfSamples()) != ESP_OK) {
+      return false;
+    }
+  }
   for (uint32_t s = 0; s < NumberOfSamples(); s++) {
     int sum = 0;
     for (uint16_t c = 0; c < kMicrophoneChannels; c++) {
       // delaying data for beamforming 'delay & sum' algorithm
-      delayed_data_[s * kMicrophoneChannels + c] =
-          fifos_[c].PushPop(raw_data_[s * kMicrophoneChannels + c]);
+      delayed_data_[c * NumberOfSamples() + s] =
+          fifos_[c].PushPop(raw_data_[c * NumberOfSamples() + s]);
 
       // accumulation data for beamforming 'delay & sum' algorithm
-      sum += delayed_data_[s * kMicrophoneChannels + c];
+      sum += delayed_data_[c * NumberOfSamples() + s];
     }
 
     beamformed_[s] = std::min(INT16_MAX, std::max(sum, INT16_MIN));

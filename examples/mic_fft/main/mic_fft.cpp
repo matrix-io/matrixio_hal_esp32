@@ -37,6 +37,8 @@
 
 namespace hal = matrix_hal;
 
+#define FFT_ORDER 128
+
 void cpp_loop() {
   matrix_hal::WishboneBus wb;
 
@@ -50,14 +52,14 @@ void cpp_loop() {
 
   hal::EverloopImage image1d;
 
-  kiss_fft_cpx cx_in[mics.NumberOfSamples()];
-  kiss_fft_cpx cx_out[mics.NumberOfSamples()];
-  kiss_fft_cfg cfg = kiss_fft_alloc(mics.NumberOfSamples(), 0, 0, 0);
+  kiss_fft_cpx cx_in[FFT_ORDER];
+  kiss_fft_cpx cx_out[FFT_ORDER];
+  kiss_fft_cfg cfg = kiss_fft_alloc(FFT_ORDER, 0, 0, 0);
 
   while (1) {
     mics.Read();
 
-    for (uint32_t s = 0; s < mics.NumberOfSamples(); s++) {
+    for (uint32_t s = 0; s < FFT_ORDER; s++) {
       cx_in[s].r = float2q(fabs(mics.At(s, 0)) / 1024.0);
       cx_in[s].i = 0;
     }
@@ -67,7 +69,7 @@ void cpp_loop() {
     for (uint32_t i = 0; i < image1d.leds.size(); i++) {
       float z = q2double(qmul((cx_out[i + 1].r), (cx_out[i + 1].r)) +
                          qmul((cx_out[i + 1].i), (cx_out[i + 1].i))) *
-                512;
+                256;
       if (i < 6) {
         image1d.leds[i].Set(0, 0, z, 0);
       } else if (i < 12) {
