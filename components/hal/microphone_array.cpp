@@ -43,8 +43,7 @@ static void irq_handler(void *args) {
 
 namespace matrix_hal {
 
-MicrophoneArray::MicrophoneArray()
-    : gain_(0), pdm_ratio_(0), sampling_frequency_(0), decimation_ratio_(0) {
+MicrophoneArray::MicrophoneArray() : gain_(3), sampling_frequency_(16000) {
   raw_data_.resize(kMicarrayBufferSize);
 
   delayed_data_.resize(kMicarrayBufferSize);
@@ -88,13 +87,13 @@ bool MicrophoneArray::Read() {
   xQueueReceive(irq_queue, &gpio, portMAX_DELAY);
 
   for (uint16_t c = 0; c < kMicrophoneChannels; c++) {
-    if (wishbone_->SpiRead(
-            kMicrophoneArrayBaseAddress + c * NumberOfSamples(),
-            reinterpret_cast<unsigned char *>(&raw_data_[0]),
-            sizeof(int16_t) * NumberOfSamples()) != ESP_OK) {
+    if (wishbone_->SpiRead(kMicrophoneArrayBaseAddress + c * NumberOfSamples(),
+                           reinterpret_cast<unsigned char *>(&raw_data_[0]),
+                           sizeof(int16_t) * NumberOfSamples()) != ESP_OK) {
       return false;
     }
   }
+
   for (uint32_t s = 0; s < NumberOfSamples(); s++) {
     int sum = 0;
     for (uint16_t c = 0; c < kMicrophoneChannels; c++) {
@@ -142,77 +141,63 @@ void MicrophoneArray::CalculateDelays(float azimutal_angle, float polar_angle,
   }
 }
 
-bool MicrophoneArray::GetPDMRatio() {
-  if (!wishbone_) return false;
-  uint16_t value;
-  wishbone_->RegRead16(kMicrophoneArrayBaseAddress + 3, &value);
-  pdm_ratio_ = value;
-  return true;
-}
-
-bool MicrophoneArray::SetPDMRatio(uint16_t pdm_ratio) {
-  if (!wishbone_) return false;
-  wishbone_->RegWrite16(kMicrophoneArrayBaseAddress + 3, pdm_ratio);
-  pdm_ratio_ = pdm_ratio;
-  return true;
-}
-
-bool MicrophoneArray::GetDecimationRatio() {
-  if (!wishbone_) return false;
-  uint16_t value;
-  wishbone_->RegRead16(kMicrophoneArrayBaseAddress + 1, &value);
-  decimation_ratio_ = value;
-  return true;
-}
-
-bool MicrophoneArray::SetDecimationRatio(uint16_t decimation_ratio) {
-  if (!wishbone_) return false;
-  wishbone_->RegWrite16(kMicrophoneArrayBaseAddress + 1, decimation_ratio);
-  decimation_ratio_ = decimation_ratio;
-  return true;
-}
-
 bool MicrophoneArray::GetGain() {
   if (!wishbone_) return false;
   uint16_t value;
-  wishbone_->RegRead16(kMicrophoneArrayBaseAddress + 2, &value);
+  wishbone_->RegRead16(kConfBaseAddress + 0x07, &value);
   gain_ = value;
   return true;
 }
 
 bool MicrophoneArray::SetGain(uint16_t gain) {
   if (!wishbone_) return false;
-  wishbone_->RegWrite16(kMicrophoneArrayBaseAddress + 2, gain);
+  wishbone_->RegWrite16(kConfBaseAddress + 0x07, gain);
   gain_ = gain;
   return true;
 }
 
 bool MicrophoneArray::SetSamplingRate(uint32_t sampling_frequency) {
-  sampling_frequency_ = sampling_frequency;
-  uint32_t systemClock = wishbone_->FPGAFrequency();
-  pdm_ratio_ = std::floor(systemClock / kPDMFrequency) - 1;
-  decimation_ratio_ =
-      std::floor((systemClock) / (sampling_frequency * (pdm_ratio_ + 1))) - 1;
-  uint16_t maxCICBits =
-      std::floor(kCICStages * (std::log(decimation_ratio_) / std::log(2)));
-  gain_ = kCICWidth - maxCICBits + 1;
+  if (sampling_frequency == 0) {
+    return false;
+  }
 
-  SetPDMRatio(pdm_ratio_);
-  SetDecimationRatio(decimation_ratio_);
-  SetGain(gain_);
+  uint16_t MIC_gain, MIC_constant;
+  for (int i = 0;; i++) {
+    if (MIC_sampling_frequencies[i][0] == 0) return false;
+    if (sampling_frequency == MIC_sampling_frequencies[i][0]) {
+      sampling_frequency_ = MIC_sampling_frequencies[i][0];
+      MIC_constant = MIC_sampling_frequencies[i][1];
+      MIC_gain = MIC_sampling_frequencies[i][2];
+      break;
+    }
+  }
+
+  sampling_frequency_ = sampling_frequency;
+  SetGain(MIC_gain);
+  wishbone_->RegWrite16(kConfBaseAddress + 0x06, MIC_constant);
+
+  return true;
+}
+
+bool MicrophoneArray::GetSamplingRate() {
+  if (!wishbone_) return false;
+  uint16_t value;
+  wishbone_->RegRead16(kConfBaseAddress + 0x06, &value);
+
+  for (int i = 0;; i++) {
+    if (MIC_sampling_frequencies[i][0] == 0) return false;
+    if (value == MIC_sampling_frequencies[i][0]) {
+      sampling_frequency_ = MIC_sampling_frequencies[i][0];
+      break;
+    }
+  }
 
   return true;
 }
 
 void MicrophoneArray::ReadConfValues() {
-  GetPDMRatio();
-  GetDecimationRatio();
   GetGain();
-  uint32_t systemClock = wishbone_->FPGAFrequency();
-  sampling_frequency_ =
-      std::floor((systemClock) /
-                 ((pdm_ratio_ + 1) * (decimation_ratio_ + 1) * 1000)) *
-      1000;
+  GetSamplingRate();
 }
 
 };  // namespace matrix_hal

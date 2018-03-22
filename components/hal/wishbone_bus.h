@@ -32,6 +32,8 @@
 
 namespace matrix_hal {
 
+const uint32_t kFPGAClock = 50000000;  // Physical OSC = 50MHz
+
 struct hardware_address {
   uint8_t readnwrite : 1;
   uint16_t reg : 15;
@@ -49,7 +51,8 @@ class WishboneBus {
   esp_err_t SpiRead(uint16_t add, uint8_t* data, int length);
   esp_err_t SpiWrite(uint16_t add, const uint8_t* data, int length);
 
-  uint32_t FPGAFrequency() { return 50000000; }
+  uint32_t FPGAFrequency() { return fpga_frequency_; }
+  esp_err_t GetFPGAFrequency();
 
  private:
   esp_err_t SpiTransfer(uint8_t* send_buffer, uint8_t* receive_buffer,
@@ -57,6 +60,8 @@ class WishboneBus {
 
  private:
   spi_device_handle_t spi_;
+  uint32_t fpga_frequency_;  // Internal FPGA clock - DCM
+
 };
 };      // namespace matrix_hal
 #endif  // CPP_DRIVER_WISHBONE_BUS_H_
