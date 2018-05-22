@@ -30,6 +30,7 @@
 #include "everloop.h"
 #include "everloop_image.h"
 #include "microphone_array.h"
+#include "microphone_core.h"
 #include "voice_memory_map.h"
 
 #include "kiss_fft.h"
@@ -49,6 +50,10 @@ void cpp_loop() {
 
   hal::MicrophoneArray mics;
   mics.Setup(&wb);
+
+  // Microphone Core Init
+  hal::MicrophoneCore mic_core(mics);
+  mic_core.Setup(&wb);
 
   hal::EverloopImage image1d;
 

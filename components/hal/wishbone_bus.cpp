@@ -21,6 +21,8 @@
 #include "wishbone_bus.h"
 #include <cstring>
 
+#include "./voice_memory_map.h"
+
 #define FPGA_SPI_CS GPIO_NUM_23
 #define FPGA_SPI_MOSI GPIO_NUM_33
 #define FPGA_SPI_MISO GPIO_NUM_21
@@ -66,6 +68,8 @@ esp_err_t WishboneBus::Init() {
   if ((ret = spi_bus_initialize(HSPI_HOST, &buscfg, 1))) return ret;
 
   if ((ret = spi_bus_add_device(HSPI_HOST, &devcfg, &spi_))) return ret;
+
+  if ((ret = GetFPGAFrequency())) return ret;
 
   return ESP_OK;
 }
@@ -123,6 +127,14 @@ esp_err_t WishboneBus::SpiWrite(uint16_t add, const uint8_t *data, int length) {
   memcpy(&global_tx_buffer[2], data, length);
 
   return SpiTransfer(global_tx_buffer, global_rx_buffer, length + 2);
+}
+
+esp_err_t WishboneBus::GetFPGAFrequency() {
+  uint16_t values[2];
+  esp_err_t ret =
+      SpiRead(kConfBaseAddress + 4, (unsigned char *)values, sizeof(values));
+  fpga_frequency_ = (kFPGAClock * values[1]) / values[0];
+  return ret;
 }
 
 };  // namespace matrix_hal
