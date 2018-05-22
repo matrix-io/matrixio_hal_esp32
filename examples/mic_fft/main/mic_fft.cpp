@@ -50,6 +50,10 @@ void cpp_loop() {
   hal::MicrophoneArray mics;
   mics.Setup(&wb);
 
+  // Microphone Core Init
+  hal::MicrophoneCore mic_core(mics);
+  mic_core.Setup(&wb);
+
   hal::EverloopImage image1d;
 
   kiss_fft_cpx cx_in[FFT_ORDER];
