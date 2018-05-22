@@ -30,6 +30,7 @@
 #include "everloop.h"
 #include "everloop_image.h"
 #include "microphone_array.h"
+#include "microphone_core.h"
 #include "voice_memory_map.h"
 
 #include "kiss_fft.h"
