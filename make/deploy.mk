@@ -8,7 +8,7 @@ MV_ESPTOOLPY_SERIAL := $(MV_ESPTOOLPY) --port $(ESPPORT) --baud $(ESPBAUD) --bef
 
 ESPTOOL_WRITE_FLASH := $(MV_ESPTOOLPY_SERIAL) write_flash $(if $(CONFIG_ESPTOOL_COMPRESSED),-z,-u) $(ESPTOOL_WRITE_FLASH_OPTIONS)
 
-DEPLOY_CMD := $(shell echo $(ESPTOOL_WRITE_FLASH) $(ESPTOOL_ALL_FLASH_ARGS) | sed -e "s=$(PWD)=/tmp=g")
+DEPLOY_CMD = $(shell echo $(ESPTOOL_WRITE_FLASH) $(ESPTOOL_ALL_FLASH_ARGS) | sed -e "s=$(PWD)=/tmp=g")
 
 deploy: all_binaries
 	@echo ""
