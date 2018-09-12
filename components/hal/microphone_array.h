@@ -58,7 +58,7 @@ class MicrophoneArray : public MatrixDriver {
   }
 
   int16_t& At(int16_t sample, int16_t channel) {
-    return delayed_data_[channel * NumberOfSamples() + sample];
+    return delayed_data_[sample * kMicrophoneChannels + channel];
   }
 
   int16_t& Beam(int16_t sample) { return beamformed_[sample]; }
