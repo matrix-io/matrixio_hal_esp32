@@ -87,8 +87,8 @@ bool MicrophoneArray::Read() {
   xQueueReceive(irq_queue, &gpio, portMAX_DELAY);
 
   for (uint16_t c = 0; c < kMicrophoneChannels; c++) {
-    if (wishbone_->SpiRead(kMicrophoneArrayBaseAddress + c * NumberOfSamples(),
-                           reinterpret_cast<unsigned char *>(&raw_data_[0]),
+    if (wishbone_->SpiRead(kMicrophoneArrayBaseAddress,
+                           reinterpret_cast<unsigned char *>(&raw_data_[c * NumberOfSamples()]),
                            sizeof(int16_t) * NumberOfSamples()) != ESP_OK) {
       return false;
     }
