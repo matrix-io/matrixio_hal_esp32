@@ -135,7 +135,7 @@ void MicrophoneArray::CalculateDelays(float azimutal_angle, float polar_angle,
   float min_distance = distance_map.begin()->first;
   for (std::map<float, int>::iterator it = distance_map.begin();
        it != distance_map.end(); ++it) {
-    int delay = std::round((it->first - min_distance) * sampling_frequency_ /
+    int delay = round((it->first - min_distance) * sampling_frequency_ /
                            sound_speed_mmseg);
     fifos_[it->second].Resize(delay);
   }
