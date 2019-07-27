@@ -8,10 +8,18 @@
     "url": "https://github.com/matrix-io/matrixio_hal_esp32"
   },
   "version": "0.77.0",
-  "authors": {
-    "name": "Matrix One",
-    "url": "https://www.matrix.one"
-  },
+  "authors": [
+    {
+      "name": "Matrix One",
+      "url": "https://www.matrix.one"
+    },
+    {
+      "name": "@hpsaturn",
+      "email": "hpsaturn@gmail.com",
+      "url": "http://hpsaturn.com",
+      "maintainer": true
+    }
+  ],
   "build":{
     "srcDir":"components/hal"
   },
