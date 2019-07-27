@@ -12,7 +12,7 @@
     "name": "Matrix One",
     "url": "https://www.matrix.one"
   },
-  "srcDir":"components",
+  "srcDir":"components/hal",
   "frameworks": "arduino",
   "platforms": "*"
 }
