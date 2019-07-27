@@ -14,7 +14,7 @@
   },
   "build":{
     "srcDir":"components/hal",
-  }
+  },
   "frameworks": "arduino",
   "platforms": "*"
 }
