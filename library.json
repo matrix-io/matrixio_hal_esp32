@@ -1,7 +1,7 @@
 {
-  "name": "MATRIX Voice HAL for ESP32",
-  "keywords": "hal, drivers, matrixvoice, everloop, mic, micarray",
-  "description": "This is the official set of ESP-IDF components for MATRIX Voice.",
+  "name": "MATRIXVoiceESP32HAL",
+  "keywords": "hal, drivers, matrixvoice, everloop, mic, micarray, espressif, esp32",
+  "description": "MatrixVoice HAL library. ESP-IDF components",
   "homepage": "https://www.matrix.one/products/voice",
   "repository": {
     "type": "git",
