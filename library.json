@@ -1,0 +1,28 @@
+{
+  "name": "MATRIXVoiceESP32HAL",
+  "keywords": "hal, drivers, matrixvoice, everloop, mic, micarray, espressif, esp32",
+  "description": "MatrixVoice HAL library. ESP-IDF components",
+  "homepage": "https://www.matrix.one/products/voice",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/matrix-io/matrixio_hal_esp32"
+  },
+  "version": "0.77.0",
+  "authors": [
+    {
+      "name": "MATRIX Labs",
+      "url": "https://www.matrix.one"
+    },
+    {
+      "name": "@hpsaturn",
+      "email": "hpsaturn@gmail.com",
+      "url": "http://hpsaturn.com",
+      "maintainer": true
+    }
+  ],
+  "build":{
+    "srcDir":"components/hal"
+  },
+  "frameworks": "arduino",
+  "platforms": "*"
+}
